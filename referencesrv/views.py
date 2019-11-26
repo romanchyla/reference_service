@@ -22,19 +22,18 @@ def text_parser(reference):
 
     :return:
     """
-    if not hasattr(text_parser, "crf"):
-        text_parser.status = False
-        text_parser.crf = CRFClassifierText()
-    if not text_parser.status:
-        start_time = time.time()
-        text_parser.status = text_parser.crf.get_ready()
-        current_app.logger.debug("Text reference trained in %s ms" % ((time.time() - start_time) * 1000))
-    if text_parser.status:
-        start_time = time.time()
-        result = text_parser.crf.parse(reference)
-        current_app.logger.debug("Text reference tagged in %s ms" % ((time.time() - start_time) * 1000))
-        return result
-    raise Exception
+    if 'crf' not in current_app.extensions:
+        crf = CRFClassifierText()
+        crf.status = crf.crf.get_ready()
+        current_app.logger.info("Text reference trained in %s ms" % ((time.time() - start_time) * 1000))
+        current_app.extensions['crf'] = crf
+
+    parser = current_app.extensions['crf']
+    start_time = time.time()
+    result = parser.crf.parse(reference)
+    current_app.logger.debug("Text reference tagged in %s ms" % ((time.time() - start_time) * 1000))
+    return result
+
 
 
 def xml_parser(reference_buffer):
